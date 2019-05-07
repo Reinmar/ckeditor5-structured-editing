@@ -7,17 +7,34 @@
 
 import { throttle } from 'lodash';
 
-export default class ComponentCollection {
+export default class InstanceCollection {
 	constructor( initialData ) {
 		this._data = initialData;
 		this._modifiedInstances = [];
 
 		// TODO hack for incorrect init order (selection is changed before we start to observe the editor).
-		this._selectedBlockUid = initialData[ 0 ].uid;
+		this._selectedInstanceUid = initialData[ 0 ].uid;
 	}
 
 	getData() {
 		return this._data;
+	}
+
+	getInstanceByUid( uid ) {
+		return this._data.find( instance => instance.uid === uid );
+	}
+
+	setInstanceProp( uid, propName, propValue ) {
+		const element = Array
+			.from( this.editor.model.document.getRoot().getChildren() )
+			.find( child => child.getAttribute( 'blockUid' ) === uid );
+
+		this.editor.model.change( writer => {
+			const props = element.getAttribute( 'blockProps' );
+			const newProps = Object.assign( {}, props, { [ propName ]: propValue } );
+
+			writer.setAttribute( 'blockProps', newProps, element );
+		} );
 	}
 
 	renderTo( container ) {
@@ -27,10 +44,12 @@ export default class ComponentCollection {
 	}
 
 	observe( editor ) {
-		const structuredEditing = editor.plugins.get( 'StructuredEditing' );
+		this.editor = editor;
+
+		const structuredEditingPlugin = editor.plugins.get( 'StructuredEditing' );
 		const throttledRender = throttle( () => this._render(), 100, { leading: false } );
 
-		structuredEditing.on( 'insert', ( evt, change ) => {
+		structuredEditingPlugin.on( 'insert', ( evt, change ) => {
 			console.log( '#insert', change );
 
 			this._data.splice( change.index, 0, ...change.blocks );
@@ -40,7 +59,7 @@ export default class ComponentCollection {
 			throttledRender();
 		} );
 
-		structuredEditing.on( 'remove', ( evt, change ) => {
+		structuredEditingPlugin.on( 'remove', ( evt, change ) => {
 			console.log( '#remove', change );
 
 			this._data.splice( change.index, change.howMany );
@@ -48,7 +67,7 @@ export default class ComponentCollection {
 			throttledRender();
 		} );
 
-		structuredEditing.on( 'update', ( evt, changedBlock ) => {
+		structuredEditingPlugin.on( 'update', ( evt, changedBlock ) => {
 			console.log( '#update', changedBlock );
 
 			const index = this._data.findIndex( block => block.uid === changedBlock.uid );
@@ -60,10 +79,10 @@ export default class ComponentCollection {
 			throttledRender();
 		} );
 
-		structuredEditing.on( 'select', ( evt, selectedBlockUid ) => {
-			console.log( '#select', selectedBlockUid );
+		structuredEditingPlugin.on( 'select', ( evt, selectedInstanceUid ) => {
+			console.log( '#select', selectedInstanceUid );
 
-			this._selectedBlockUid = selectedBlockUid;
+			this._selectedInstanceUid = selectedInstanceUid;
 
 			this._renderSelection();
 		} );
@@ -119,7 +138,7 @@ export default class ComponentCollection {
 			.querySelectorAll( '.console-block-selected' )
 			.forEach( element => element.classList.remove( 'console-block-selected' ) );
 
-		const selectedDataBlock = document.getElementById( `console-block-${ this._selectedBlockUid }` );
+		const selectedDataBlock = document.getElementById( `console-block-${ this._selectedInstanceUid }` );
 
 		if ( selectedDataBlock ) {
 			selectedDataBlock.classList.add( 'console-block-selected' );

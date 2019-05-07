@@ -21,7 +21,8 @@ import Table from '@ckeditor/ckeditor5-table/src/table';
 import TableToolbar from '@ckeditor/ckeditor5-table/src/tabletoolbar';
 
 import StructuredEditing from '../src/structuredediting';
-import ComponentCollection from '../src/componentcollection';
+import InstanceCollection from '../src/instancecollection';
+import InstanceInspector from '../src/instanceinspector';
 import MagicBlock from '../src/magicblock';
 
 import CKEditorInspector from '@ckeditor/ckeditor5-inspector';
@@ -81,7 +82,7 @@ class ComponentRepository {
 	}
 }
 
-const blockCollection = new ComponentCollection( [
+const componentCollection = new InstanceCollection( [
 	{
 		name: 'headline',
 		uid: uid(),
@@ -280,14 +281,18 @@ ClassicEditor
 			} )
 		},
 		initialData: {
-			main: blockCollection.getData()
+			main: componentCollection.getData()
 		}
 	} )
 	.then( editor => {
 		window.editor = editor;
 
-		blockCollection.observe( editor );
-		blockCollection.renderTo( document.getElementById( 'page-structure-console' ) );
+		componentCollection.observe( editor );
+		componentCollection.renderTo( document.getElementById( 'page-structure-container' ) );
+
+		const inspector = new InstanceInspector( editor, componentCollection );
+
+		inspector.renderTo( document.getElementById( 'inspector-container' ) );
 
 		CKEditorInspector.attach( 'editor', editor );
 	} )
