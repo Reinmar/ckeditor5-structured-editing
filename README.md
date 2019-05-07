@@ -1,4 +1,4 @@
-CKEditor 5 structured components support
+CKEditor 5 structured editing
 ========================================
 
 TODO

@@ -1,0 +1,177 @@
+body {
+	font-family: -apple-system, BlinkMacSystemFont, 'Work Sans', Helvetica, sans-serif;
+	background: #222;
+	margin: 0;
+	padding: 0;
+	line-height: 1.5;
+}
+
+#editor-column {
+	margin-left: 380px;
+	margin-right: 380px;
+	background: #FFF;
+}
+
+#editor-column .ck-content {
+	padding: 10px 60px;
+}
+
+.sidebar {
+	position: fixed;
+	top: 0;
+	bottom: 0;
+	width: 340px;
+	padding: 20px;
+	overflow-y: auto;
+	background: #222;
+	color: #EEE;
+}
+
+::-webkit-scrollbar {
+	width: 10px;
+	background-color: #444;
+}
+::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    box-shadow: inset 0 0 6px rgba( 0, 0, 0, .2 );
+    background-color: #999;
+}
+
+#inspector-column {
+	right: 0;
+}
+
+#page-structure-column {
+	left: 0;
+	border-right: 1px solid #222; /* cause scrollbar */
+}
+
+.sidebar h1 {
+	font-size: 18px;
+}
+
+.console-block {
+	margin-bottom: 15px;
+	transition: background-color 1s cubic-bezier(.44,-0.07,.55,1.15);
+	list-style: none;
+	background: rgba( 150, 150, 150, 0.2 );
+	font-size: 16px;
+}
+
+.console-block-selected {
+	outline: solid 3px var(--ck-color-focus-border);
+}
+
+.console-block-modified {
+	animation: linear 1s blink-on-appear;
+}
+
+@keyframes blink-on-appear {
+	30% {
+		background-color: rgba( 120, 180, 255, 0.5 );
+	}
+}
+
+.console-block h2 {
+	background: rgba( 150, 150, 150, 0.3 );
+	padding: 5px 10px;
+	margin: 0;
+	font-size: 16px;
+	font-weight: 400;
+}
+
+.console-block h3 {
+	font-size: 16px;
+	font-weight: 400;
+	margin: 0;
+}
+
+.console-block-additional-data {
+	padding: 5px 10px;
+}
+
+.console-block-additional-data table {
+	width: 100%;
+	table-layout: fixed;
+	border-collapse: collapse;
+	font-size: 14px;
+}
+
+.console-block-additional-data th, .console-block-additional-data td {
+	padding: 2px 5px;
+	border: 1px solid rgba( 150, 150, 150, 0.5 );
+}
+
+.console-block-additional-data th {
+	font-weight: 400;
+	text-align: right;
+	width: 25%;
+}
+
+.console-block-additional-data td {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.property-value {
+	font-family: monospace;
+	white-space: nowrap;
+}
+
+/*
+	The magic block feature
+*/
+
+.magic-block {
+	height: 10px;
+	font-size: 0px;
+	line-height: 0px;
+	background: rgba( 200, 200, 200, 0.5 );
+	cursor: pointer;
+	position: relative;
+}
+
+.magic-block:hover {
+	background: var(--ck-color-focus-border);
+}
+
+/*
+	Content styles
+*/
+
+.block {
+	padding: 10px;
+	margin-top: 10px;
+	margin-bottom: 10px;
+	border: dashed 1px rgba( 220, 220, 220, 0.8 );
+}
+
+.block:hover {
+	border: dashed 1px var(--ck-color-focus-border);
+}
+
+.block-headline {
+	color: #FFF;
+	background: rgb(10, 85, 130);
+}
+
+.block-image img {
+	width: 100%;
+	height: auto;
+}
+
+.block-image, .block-video {
+	background: rgba( 200, 200, 200, 0.2 );
+}
+
+.block-image-align-right {
+	float: right;
+	width: 50%;
+	margin-left: 20px;
+}
+
+.block-image-align-left {
+	float: left;
+	width: 50%;
+	margin-right: 20px;
+}
