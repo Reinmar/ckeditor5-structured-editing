@@ -24,6 +24,8 @@ import StructuredEditing from '../src/structuredediting';
 import ComponentCollection from '../src/componentcollection';
 import MagicBlock from '../src/magicblock';
 
+import CKEditorInspector from '@ckeditor/ckeditor5-inspector';
+
 const sampleText = 'Litwo! Ojczyzno moja! ty jesteś jak zdrowie; Ile cię trzeba cenić, ten tylko się dowie, Kto cię stracił. ';
 
 const parser = new DOMParser();
@@ -92,19 +94,6 @@ const blockCollection = new ComponentCollection( [
 	},
 
 	{
-		name: 'image',
-		uid: uid(),
-		slots: {
-			heading: '<h3>Random kitten</h3>',
-			caption: '<p>A photo of a kitten.</p>'
-		},
-		props: {
-			url: 'http://placekitten.com/700/200',
-			alt: 'Random kitten'
-		}
-	},
-
-	{
 		name: 'default',
 		uid: uid(),
 		slots: {
@@ -116,13 +105,11 @@ const blockCollection = new ComponentCollection( [
 		name: 'image',
 		uid: uid(),
 		slots: {
-			heading: '<h3>Another random kitten</h3>',
-			caption: '<p>Cause kittens.</p>'
+			caption: '<p>A photo of a kitten.</p>'
 		},
 		props: {
-			url: 'http://placekitten.com/500/300',
-			alt: 'Random kitten 2',
-			align: 'right'
+			url: 'http://placekitten.com/800/300',
+			alt: 'Random kitten'
 		}
 	},
 
@@ -137,18 +124,24 @@ const blockCollection = new ComponentCollection( [
 	{
 		name: 'video',
 		uid: uid(),
+		slots: {
+			title: '<h3>Red Hot Chili Peppers - Live at Slane Castle 2003 Full Concert</h3>',
+			caption: '<p>Check out Frusciante\'s solo</p>'
+		},
 		props: {
-			url: 'https://www.youtube.com/embed/FmrGz8qSyrk',
-			title: 'Red Hot Chili Peppers - Live at Slane Castle 2003 Full Concert'
+			url: 'https://www.youtube.com/embed/FmrGz8qSyrk'
 		}
 	},
 
 	{
 		name: 'video',
 		uid: uid(),
+		slots: {
+			title: '<h3>Loituma - Ieva\'s polka, Ievan Polkka</h3>',
+			caption: '<p>Trololo...</p>'
+		},
 		props: {
 			url: 'https://www.youtube.com/embed/1ygdAiDxKfI',
-			title: 'Loituma - Ieva\'s polka, Ievan Polkka'
 		}
 	},
 
@@ -208,7 +201,7 @@ ClassicEditor
 					render() {
 						return d( `
 							<section class="block block-text block-default">
-								<div class="block-content" data-block-slot=main></div>
+								<div data-block-slot="main"></div>
 							</section>
 						` );
 					}
@@ -217,13 +210,28 @@ ClassicEditor
 				headline: {
 					type: 'textBlock',
 					slots: {
-						main: '<h2></h2>',
+						main: '<h2></h2>'
 					},
 					render( props ) {
 						return d( `
 							<hgroup class="block block-text block-headline block-headline-${ props.level }">
-								<div class="block-content" data-block-slot=main></div>
+								<div data-block-slot="main"></div>
 							</hgroup>
+						` );
+					}
+				},
+
+				// Will be able to work once we'll support inline slots.
+				quote: {
+					type: 'textBlock',
+					slots: {
+						main: ''
+					},
+					render() {
+						return d( `
+							<blockquote class="block block-text block-quote">
+								<p data-block-slot="main"></p>
+							</blockquote>
 						` );
 					}
 				},
@@ -231,37 +239,41 @@ ClassicEditor
 				image: {
 					type: 'objectBlock',
 					slots: {
-						heading: '<h1></h1>',
 						caption: '<p></p>'
 					},
 					render( props ) {
 						return d( `
-							<div class="block block-object block-image block-image-align-${ props.align || 'default' }">
-								<div class="block-content" data-block-slot=heading></div>
+							<figure class="block block-object block-image block-image-align-${ props.align || 'default' }">
 								<img src="${ props.url }" alt="${ props.alt }" width="700" height="200">
-								<div class="block-content" data-block-slot=caption></div>
-							</div>
+								<figcaption data-block-slot="caption"></figcaption>
+							</figure>
 						` );
 					}
 				},
 
 				video: {
 					type: 'objectBlock',
+					slots: {
+						title: '<h3></h3>',
+						caption: '<p></p>'
+					},
 					render( props ) {
 						return d( `
-							<div class="block block-object block-video">
-								<h3>${ props.title }</h3>
+							<figure class="block block-object block-video">
+								<div data-block-slot="title"></div>
 								<p>${ props.url }</p>
-							</div>
+								<figcaption data-block-slot="caption"></figcaption>
+							</figure>
 						` );
 
 						// return d( `
-						// 	<div class="block block-object block-video">
-						// 		<h3>${ props.title }</h3>
+						// 	<figure class="block block-object block-video">
+						// 		<div data-block-slot="title"></div>
 						// 		<iframe width="560" height="315" src="${ props.url }" frameborder="0"
 						// 			allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
 						// 		</iframe>
-						// 	</div>
+						// 		<figcaption data-block-slot="caption"></figcaption>
+						// 	</figure>
 						// ` );
 					}
 				}
@@ -276,6 +288,8 @@ ClassicEditor
 
 		blockCollection.observe( editor );
 		blockCollection.renderTo( document.getElementById( 'page-structure-console' ) );
+
+		CKEditorInspector.attach( 'editor', editor );
 	} )
 	.catch( err => {
 		console.error( err.stack );
