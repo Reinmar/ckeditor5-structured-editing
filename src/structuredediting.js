@@ -92,9 +92,9 @@ export default class StructuredEditing extends Plugin {
 			view: ( modelElement, viewWriter ) => {
 				// TODO duplicated in the converted for textBlock.
 				const templateViewElement = cloneViewElement(
-					'editing',
 					this._renderBlock( modelElement.getAttribute( 'blockName' ), modelElement.getAttribute( 'blockProps' ) ),
-					viewWriter
+					viewWriter,
+					{ createEditables: true }
 				);
 
 				viewWriter.setCustomProperty( 'objectBlock', true, templateViewElement );
@@ -130,7 +130,6 @@ export default class StructuredEditing extends Plugin {
 				} );
 
 				const templateViewElement = cloneViewElement(
-					'data',
 					this._renderBlock( blockName, blockProps ),
 					viewWriter
 				);
@@ -163,7 +162,6 @@ export default class StructuredEditing extends Plugin {
 			dispatcher => {
 				const insertViewElement = insertElement( ( modelElement, viewWriter ) => {
 					const templateViewElement = cloneViewElement(
-						'editing',
 						this._renderBlock( modelElement.getAttribute( 'blockName' ), modelElement.getAttribute( 'blockProps' ) ),
 						viewWriter
 					);
@@ -203,7 +201,6 @@ export default class StructuredEditing extends Plugin {
 					} );
 
 					const templateViewElement = cloneViewElement(
-						'data',
 						this._renderBlock( blockName, blockProps ),
 						viewWriter
 					);
@@ -427,29 +424,30 @@ function modelElementToBlock( block, dataController ) {
 }
 
 /**
- * @param {'data'|'editing'} pipeline
  * @param element
  * @param writer
+ * @param {Object} opts
+ * @param {Boolean} opts.createEditables
  */
-function cloneViewElement( pipeline, element, writer ) {
+function cloneViewElement( element, writer, opts = {} ) {
 	let clone;
 
-	if ( pipeline == 'editing' && element.getAttribute( 'data-block-slot' ) ) {
+	if ( opts.createEditables && element.getAttribute( 'data-block-slot' ) ) {
 		clone = writer.createEditableElement( element.name, element.getAttributes() );
 	} else {
 		clone = writer.createContainerElement( element.name, element.getAttributes() );
 	}
 
 	for ( const child of element.getChildren() ) {
-		writer.insert( writer.createPositionAt( clone, 'end' ), cloneViewNode( pipeline, child, writer ) );
+		writer.insert( writer.createPositionAt( clone, 'end' ), cloneViewNode( child, writer, opts ) );
 	}
 
 	return clone;
 }
 
-function cloneViewNode( pipeline, node, writer ) {
+function cloneViewNode( node, writer, opts ) {
 	if ( node.is( 'element' ) ) {
-		return cloneViewElement( pipeline, node, writer );
+		return cloneViewElement( node, writer, opts );
 	} else {
 		return writer.createText( node.data );
 	}
