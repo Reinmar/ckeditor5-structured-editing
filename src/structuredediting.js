@@ -84,37 +84,76 @@ export default class StructuredEditing extends Plugin {
 	_setConverters() {
 		const editor = this.editor;
 		const conversion = editor.conversion;
+		const that = this;
 
 		// objectBlock --------------------------------------------------------------
 
 		conversion.for( 'editingDowncast' ).elementToElement( {
 			model: 'objectBlock',
-			view: ( modelElement, viewWriter ) => {
-				// TODO duplicated in the converted for textBlock.
-				const templateViewElement = cloneViewElement(
-					this._renderBlock( modelElement.getAttribute( 'blockName' ), modelElement.getAttribute( 'blockProps' ) ),
-					viewWriter,
-					{ createEditables: true }
-				);
-
-				viewWriter.setCustomProperty( 'objectBlock', true, templateViewElement );
-
-				const viewSlots = findViewSlots( viewWriter.createRangeIn( templateViewElement ) );
-				const modelSlots = findObjectBlockModelSlots( modelElement );
-
-				if ( Object.keys( viewSlots ).sort().join( ',' ) != Object.keys( modelSlots ).sort().join( ',' ) ) {
-					throw new Error( 'Different set of slots in the template and in the model.' );
-				}
-
-				for ( const slotName of Object.keys( viewSlots ) ) {
-					editor.editing.mapper.bindElements( modelSlots[ slotName ], viewSlots[ slotName ] );
-
-					toWidgetEditable( viewSlots[ slotName ], viewWriter );
-				}
-
-				return toWidget( templateViewElement, viewWriter );
-			}
+			view: createViewObjectBlock
 		} );
+
+		// Handle re-rendering on props change.
+		editor.conversion.for( 'editingDowncast' ).add(
+			dispatcher => {
+				dispatcher.on( 'attribute:blockProps:objectBlock', ( evt, data, conversionApi ) => {
+					// Hack. Since elementToElement doesn't consume attributes of this element
+					// and since there's no way to make it do so without rewriting it all to a plain `insert:*` listener,
+					// this is the best way to handle the change of this attribute. Without that this listener
+					// would be called also on objectBlock insertion.
+					if ( !data.attributeOldValue ) {
+						return;
+					}
+
+					const viewElement = conversionApi.mapper.toViewElement( data.item );
+					const viewSlots = findViewSlots( conversionApi.writer.createRangeIn( viewElement ) );
+
+					conversionApi.writer.remove( viewElement );
+					conversionApi.mapper.unbindViewElement( viewElement );
+
+					const newViewElement = createViewObjectBlock( data.item, conversionApi.writer );
+					const newViewSlots = findViewSlots( conversionApi.writer.createRangeIn( newViewElement ) );
+
+					for ( const slotName of Object.keys( viewSlots ) ) {
+						conversionApi.writer.move(
+							conversionApi.writer.createRangeIn( viewSlots[ slotName ] ),
+							conversionApi.writer.createPositionAt( newViewSlots[ slotName ], 0 )
+						);
+					}
+
+					const viewPosition = conversionApi.mapper.toViewPosition( data.range.start );
+
+					conversionApi.mapper.bindElements( data.item, newViewElement );
+					conversionApi.writer.insert( viewPosition, newViewElement );
+				} );
+			}
+		);
+
+		function createViewObjectBlock( modelElement, viewWriter ) {
+			// TODO duplicated in the converted for textBlock.
+			const templateViewElement = cloneViewElement(
+				that._renderBlock( modelElement.getAttribute( 'blockName' ), modelElement.getAttribute( 'blockProps' ) ),
+				viewWriter,
+				{ createEditables: true }
+			);
+
+			viewWriter.setCustomProperty( 'objectBlock', true, templateViewElement );
+
+			const viewSlots = findViewSlots( viewWriter.createRangeIn( templateViewElement ) );
+			const modelSlots = findObjectBlockModelSlots( modelElement );
+
+			if ( Object.keys( viewSlots ).sort().join( ',' ) != Object.keys( modelSlots ).sort().join( ',' ) ) {
+				throw new Error( 'Different set of slots in the template and in the model.' );
+			}
+
+			for ( const slotName of Object.keys( viewSlots ) ) {
+				editor.editing.mapper.bindElements( modelSlots[ slotName ], viewSlots[ slotName ] );
+
+				toWidgetEditable( viewSlots[ slotName ], viewWriter );
+			}
+
+			return toWidget( templateViewElement, viewWriter );
+		}
 
 		conversion.for( 'dataDowncast' ).elementToElement( {
 			model: 'objectBlock',

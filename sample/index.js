@@ -244,7 +244,7 @@ ClassicEditor
 					},
 					render( props ) {
 						return d( `
-							<figure class="block block-object block-image block-image-align-${ props.align || 'default' }">
+							<figure class="block block-object block-image block-align-${ props.align || 'none' }">
 								<img src="${ props.url }" alt="${ props.alt }" width="700" height="200">
 								<figcaption data-block-slot="caption"></figcaption>
 							</figure>
@@ -260,7 +260,7 @@ ClassicEditor
 					},
 					render( props ) {
 						return d( `
-							<figure class="block block-object block-video">
+							<figure class="block block-object block-video block-align-${ props.align || 'none' }">
 								<div data-block-slot="title"></div>
 								<p>${ props.url }</p>
 								<figcaption data-block-slot="caption"></figcaption>
