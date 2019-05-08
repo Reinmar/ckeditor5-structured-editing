@@ -331,20 +331,28 @@ export default class StructuredEditing extends Plugin {
 		} );
 
 		doc.on( 'change:data', () => {
+			const changedBlocks = new Set();
+
 			for ( const change of doc.differ.getChanges() ) {
-				let changeAncestor;
-
 				if ( change.type == 'remove' || change.type == 'insert' ) {
-					changeAncestor = change.position.parent;
+					const block = findBlockAncestor( change.position.parent );
+
+					if ( block ) {
+						changedBlocks.add( block );
+					}
 				} else {
-					changeAncestor = change.range.getCommonAncestor();
-				}
+					for ( const item of change.range.getItems() ) {
+						const block = isBlock( item ) ? item : findBlockAncestor( item );
 
-				const block = findBlockAncestor( changeAncestor );
-
-				if ( block ) {
-					this.fire( 'update', modelElementToBlock( block, editor.data ) );
+						if ( block ) {
+							changedBlocks.add( block );
+						}
+					}
 				}
+			}
+
+			for ( const block of changedBlocks ) {
+				this.fire( 'update', modelElementToBlock( block, editor.data ) );
 			}
 		} );
 	}
@@ -662,7 +670,11 @@ function didRootContentChange( doc ) {
 }
 
 function findBlockAncestor( element ) {
-	return element.getAncestors( { includeSelf: true } ).find( element => element.is( 'textBlock' ) || element.is( 'objectBlock' ) );
+	return element.getAncestors( { includeSelf: true } ).find( element => isBlock( element ) );
+}
+
+function isBlock( element ) {
+	return element.is( 'textBlock' ) || element.is( 'objectBlock' );
 }
 
 function uid() {

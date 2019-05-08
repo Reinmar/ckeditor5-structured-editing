@@ -99,7 +99,7 @@ export default class InstanceCollection {
 				</h2>
 			`;
 
-			if ( blockData.props ) {
+			if ( blockData.props && Object.keys( blockData.props ).length ) {
 				html += `
 					<div class="console-block-additional-data">
 						<h3>props:</h3>
@@ -108,7 +108,7 @@ export default class InstanceCollection {
 				`;
 			}
 
-			if ( blockData.slots ) {
+			if ( blockData.slots && Object.keys( blockData.slots ).length ) {
 				html += `
 					<div class="console-block-additional-data">
 						<h3>slots:</h3>

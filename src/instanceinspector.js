@@ -9,7 +9,7 @@ const COMPONENT_PROPS = {
 	default: [],
 	headline: [ 'level' ],
 	image: [ 'url', 'alt', 'align' ],
-	video: [ 'url', 'alt', 'align' ]
+	video: [ 'url', 'align' ]
 };
 
 export default class InstanceInspector {
@@ -91,7 +91,7 @@ export default class InstanceInspector {
 				break;
 		}
 
-		input.addEventListener( 'change', () => {
+		input.addEventListener( 'input', () => {
 			this.instanceCollection.setInstanceProp( this._selectedInstanceUid, propName, detectType( input.value ) );
 		} );
 
