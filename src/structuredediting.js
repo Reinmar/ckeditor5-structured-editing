@@ -13,6 +13,11 @@ import { toWidget, toWidgetEditable, viewToModelPositionOutsideModelElement } fr
 
 import { insertElement } from '@ckeditor/ckeditor5-engine/src/conversion/downcasthelpers';
 
+import ButtonView from '@ckeditor/ckeditor5-ui/src/button/buttonview';
+
+import imageIcon from '@ckeditor/ckeditor5-core/theme/icons/image.svg';
+import mediaIcon from '@ckeditor/ckeditor5-media-embed/theme/icons/media.svg';
+
 import diffToChanges from '@ckeditor/ckeditor5-utils/src/difftochanges';
 import diff from '@ckeditor/ckeditor5-utils/src/diff';
 
@@ -35,6 +40,7 @@ export default class StructuredEditing extends Plugin {
 		this._setMapping();
 		this._setDataPipeline();
 		this._setSelectionObserver();
+		this._createButtons();
 
 		// TODO we should be listening for editor.data#ready, but #1732.
 		this.editor.on( 'ready', () => {
@@ -398,6 +404,32 @@ export default class StructuredEditing extends Plugin {
 				writer.insert( dataDocFrag, modelRoot, 0 );
 			} );
 		};
+	}
+
+	_createButtons() {
+		const editor = this.editor;
+		const repository = this._repository;
+
+		for ( const blockName of repository.getNames() ) {
+			editor.ui.componentFactory.add( 'insert' + blockName, () => {
+				const button = new ButtonView( editor.locale );
+
+				button.withText = blockName == 'default' || blockName == 'headline';
+				button.label = blockName;
+				button.icon = { image: imageIcon, video: mediaIcon }[ blockName ];
+
+				button.on( 'execute', () => {
+					editor.model.change( writer => {
+						const emptyDefinition = repository.getDefinition( { name: blockName } );
+						const modelElement = blockToModelElement( emptyDefinition, writer, editor.data );
+
+						editor.model.insertContent( modelElement );
+					} );
+				} );
+
+				return button;
+			} );
+		}
 	}
 
 	_renderBlock( blockName, blockProps ) {

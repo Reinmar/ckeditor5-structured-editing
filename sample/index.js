@@ -73,6 +73,10 @@ class ComponentRepository {
 		};
 	}
 
+	getNames() {
+		return Array.from( this._blocks.keys() );
+	}
+
 	_get( name ) {
 		if ( !this._blocks.has( name ) ) {
 			throw new Error( 'Unknown block name.' );
@@ -180,8 +184,12 @@ ClassicEditor
 			'link',
 			'bulletedList',
 			'numberedList',
-			'blockQuote',
-			'insertTable',
+			'|',
+			// 'insertdefault',
+			// 'insertheadline',
+			'insertimage',
+			'insertvideo',
+			'|',
 			'undo',
 			'redo'
 		],
@@ -215,7 +223,7 @@ ClassicEditor
 					},
 					render( props ) {
 						return d( `
-							<hgroup class="block block-text block-headline block-headline-${ props.level }">
+							<hgroup class="block block-text block-headline block-headline-${ props.level || 1 }">
 								<div data-block-slot="main"></div>
 							</hgroup>
 						` );
@@ -245,7 +253,7 @@ ClassicEditor
 					render( props ) {
 						return d( `
 							<figure class="block block-object block-image block-align-${ props.align || 'none' }">
-								<img src="${ props.url }" alt="${ props.alt }" width="700" height="200">
+								<img src="${ props.url || '' }" alt="${ props.alt || '' }" width="700" height="200">
 								<figcaption data-block-slot="caption"></figcaption>
 							</figure>
 						` );
@@ -262,7 +270,7 @@ ClassicEditor
 						return d( `
 							<figure class="block block-object block-video block-align-${ props.align || 'none' }">
 								<div data-block-slot="title"></div>
-								<p>${ props.url }</p>
+								<p>${ props.url || '' }</p>
 								<figcaption data-block-slot="caption"></figcaption>
 							</figure>
 						` );
