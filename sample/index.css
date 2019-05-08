@@ -51,6 +51,10 @@ body {
 	font-size: 18px;
 }
 
+/*
+	Page structure console
+*/
+
 .console-block {
 	margin-bottom: 15px;
 	transition: background-color 1s cubic-bezier(.44,-0.07,.55,1.15);
@@ -117,6 +121,28 @@ body {
 .property-value {
 	font-family: monospace;
 	white-space: nowrap;
+}
+
+/*
+	Inspector
+*/
+
+#inspector-container h2 {
+	font-size: 16px;
+}
+
+#inspector-container label {
+	display: block;
+	margin-top: 16px;
+	margin-bottom: 3px;
+}
+
+#inspector-container input, #inspector-container select {
+	display: block;
+	padding: 0 5px;
+	width: 100%;
+	box-sizing: border-box;
+	height: 25px;
 }
 
 /*

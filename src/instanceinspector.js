@@ -63,7 +63,8 @@ export default class InstanceInspector {
 			case 'alt':
 				field = d( `
 					<div>
-						<label>${ propName }: <input type="text" value="${ propValue }"></label>
+						<label for="input-${ propName }">${ propName }:</label>
+						<input type="text" value="${ propValue }" id="input-${ propName }">
 					</div>
 				` );
 				input = field.querySelector( 'input' );
@@ -73,7 +74,8 @@ export default class InstanceInspector {
 			case 'level':
 				field = d( `
 					<div>
-						<label>${ propName }: <input type="number" min="1" value="${ propValue }"></label>
+						<label for="input-${ propName }">${ propName }:</label>
+						<input type="number" min="1" value="${ propValue }" id="input-${ propName }">
 					</div>
 				` );
 				input = field.querySelector( 'input' );
@@ -83,7 +85,8 @@ export default class InstanceInspector {
 			case 'align':
 				field = d( `
 					<div>
-						<label>${ propName }: <select>${ getAlignOptions( propValue ) }</select></label>
+						<label for="input-${ propName }">${ propName }:</label>
+						<select id="input-${ propName }">${ getAlignOptions( propValue ) }</select>
 					</div>
 				` );
 				input = field.querySelector( 'select' );
