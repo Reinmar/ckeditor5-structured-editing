@@ -27,7 +27,9 @@ import MagicBlock from '../src/magicblock';
 
 import CKEditorInspector from '@ckeditor/ckeditor5-inspector';
 
-const sampleText = 'Litwo! Ojczyzno moja! ty jesteś jak zdrowie; Ile cię trzeba cenić, ten tylko się dowie, Kto cię stracił. ';
+const sampleText =
+	'The framework was designed to be a highly flexible and universal ' +
+	'platform for creating custom rich-text editing solutions. ';
 
 const parser = new DOMParser();
 
@@ -102,7 +104,7 @@ const componentCollection = new InstanceCollection( [
 		name: 'default',
 		uid: uid(),
 		slots: {
-			main: `<h3>I'm totally editable</h3><p>${ sampleText.repeat( 3 ) }</p>`
+			main: `<h3>I'm totally editable</h3><p>${ sampleText.repeat( 2 ) }</p>`
 		}
 	},
 
@@ -122,7 +124,7 @@ const componentCollection = new InstanceCollection( [
 		name: 'default',
 		uid: uid(),
 		slots: {
-			main: '<h3>I\'m totally editable</h3>' + `<p>${ sampleText.repeat( 3 ) }</p>`.repeat( 3 )
+			main: '<h3>I\'m totally editable</h3>' + `<p>${ sampleText.repeat( 2 ) }</p>`.repeat( 3 )
 		}
 	},
 
@@ -154,7 +156,7 @@ const componentCollection = new InstanceCollection( [
 		name: 'default',
 		uid: uid(),
 		slots: {
-			main: `<p>${ sampleText.repeat( 3 ) }</p>`.repeat( 3 )
+			main: `<p>${ sampleText.repeat( 2 ) }</p>`.repeat( 3 )
 		}
 	},
 ] );
