@@ -5,11 +5,11 @@
 
 /* global DOMParser */
 
-const COMPONENT_PROPS = {
-	default: [],
-	headline: [ 'level' ],
-	image: [ 'url', 'alt', 'align' ],
-	video: [ 'url', 'align' ]
+const COMPONENT_PROPERTIES = {
+	Text: [],
+	Headline: [ 'level' ],
+	Image: [ 'url', 'alt', 'align' ],
+	Video: [ 'url', 'align' ]
 };
 
 export default class InstanceInspector {
@@ -43,12 +43,12 @@ export default class InstanceInspector {
 			<h2>#${ instance.uid } ${ instance.name }</h2>
 		` ) );
 
-		if ( !instance.props ) {
+		if ( !instance.properties ) {
 			return;
 		}
 
-		for ( const propName of COMPONENT_PROPS[ instance.name ] ) {
-			const field = this._createFormField( propName, instance.props[ propName ] );
+		for ( const propName of COMPONENT_PROPERTIES[ instance.name ] ) {
+			const field = this._createFormField( propName, instance.properties[ propName ] );
 
 			this._container.appendChild( field );
 		}
@@ -95,7 +95,7 @@ export default class InstanceInspector {
 		}
 
 		input.addEventListener( 'input', () => {
-			this.instanceCollection.setInstanceProp( this._selectedInstanceUid, propName, detectType( input.value ) );
+			this.instanceCollection.setInstanceProperty( this._selectedInstanceUid, propName, detectType( input.value ) );
 		} );
 
 		return field;

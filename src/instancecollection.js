@@ -24,16 +24,16 @@ export default class InstanceCollection {
 		return this._data.find( instance => instance.uid === uid );
 	}
 
-	setInstanceProp( uid, propName, propValue ) {
+	setInstanceProperty( uid, propName, propValue ) {
 		const element = Array
 			.from( this.editor.model.document.getRoot().getChildren() )
 			.find( child => child.getAttribute( 'blockUid' ) === uid );
 
 		this.editor.model.change( writer => {
-			const props = element.getAttribute( 'blockProps' );
-			const newProps = Object.assign( {}, props, { [ propName ]: propValue } );
+			const properties = element.getAttribute( 'blockProperties' );
+			const newProperties = Object.assign( {}, properties, { [ propName ]: propValue } );
 
-			writer.setAttribute( 'blockProps', newProps, element );
+			writer.setAttribute( 'blockProperties', newProperties, element );
 		} );
 	}
 
@@ -93,26 +93,26 @@ export default class InstanceCollection {
 
 		for ( const blockData of this._data ) {
 			let html = `
-				<li class="console-block" id="console-block-${ blockData.uid }">
-				<h2 class="console-block-core-data">
+				<li class="console-component" id="console-component-${ blockData.uid }">
+				<h2 class="console-component-core-data">
 						#${ blockData.uid } ${ blockData.name }
 				</h2>
 			`;
 
-			if ( blockData.props && Object.keys( blockData.props ).length ) {
+			if ( blockData.properties && Object.keys( blockData.properties ).length ) {
 				html += `
-					<div class="console-block-additional-data">
-						<h3>props:</h3>
-						${ formatObject( blockData.props ) }
+					<div class="console-component-additional-data">
+						<h3>properties:</h3>
+						${ formatObject( blockData.properties ) }
 					</div>
 				`;
 			}
 
-			if ( blockData.slots && Object.keys( blockData.slots ).length ) {
+			if ( blockData.editables && Object.keys( blockData.editables ).length ) {
 				html += `
-					<div class="console-block-additional-data">
-						<h3>slots:</h3>
-						${ formatObject( blockData.slots ) }
+					<div class="console-component-additional-data">
+						<h3>editables:</h3>
+						${ formatObject( blockData.editables ) }
 					</div>
 				`;
 			}
@@ -123,9 +123,9 @@ export default class InstanceCollection {
 		}
 
 		for ( const uid of new Set( this._modifiedInstances ) ) {
-			const dataBlock = document.getElementById( `console-block-${ uid }` );
+			const dataBlock = document.getElementById( `console-component-${ uid }` );
 
-			dataBlock.classList.add( 'console-block-modified' );
+			dataBlock.classList.add( 'console-component-modified' );
 		}
 
 		this._modifiedInstances = [];
@@ -135,13 +135,13 @@ export default class InstanceCollection {
 
 	_renderSelection() {
 		document
-			.querySelectorAll( '.console-block-selected' )
-			.forEach( element => element.classList.remove( 'console-block-selected' ) );
+			.querySelectorAll( '.console-component-selected' )
+			.forEach( element => element.classList.remove( 'console-component-selected' ) );
 
-		const selectedDataBlock = document.getElementById( `console-block-${ this._selectedInstanceUid }` );
+		const selectedDataBlock = document.getElementById( `console-component-${ this._selectedInstanceUid }` );
 
 		if ( selectedDataBlock ) {
-			selectedDataBlock.classList.add( 'console-block-selected' );
+			selectedDataBlock.classList.add( 'console-component-selected' );
 		}
 	}
 }

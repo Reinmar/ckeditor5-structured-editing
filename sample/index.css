@@ -55,7 +55,7 @@ body {
 	Page structure console
 */
 
-.console-block {
+.console-component {
 	margin-bottom: 15px;
 	transition: background-color 1s cubic-bezier(.44,-0.07,.55,1.15);
 	list-style: none;
@@ -63,11 +63,11 @@ body {
 	font-size: 16px;
 }
 
-.console-block-selected {
+.console-component-selected {
 	outline: solid 3px var(--ck-color-focus-border);
 }
 
-.console-block-modified {
+.console-component-modified {
 	animation: linear 1s blink-on-appear;
 }
 
@@ -77,7 +77,7 @@ body {
 	}
 }
 
-.console-block h2 {
+.console-component h2 {
 	background: rgba( 150, 150, 150, 0.3 );
 	padding: 5px 10px;
 	margin: 0;
@@ -85,35 +85,35 @@ body {
 	font-weight: 400;
 }
 
-.console-block h3 {
+.console-component h3 {
 	font-size: 16px;
 	font-weight: 400;
 	margin: 0;
 }
 
-.console-block-additional-data {
+.console-component-additional-data {
 	padding: 5px 10px;
 }
 
-.console-block-additional-data table {
+.console-component-additional-data table {
 	width: 100%;
 	table-layout: fixed;
 	border-collapse: collapse;
 	font-size: 14px;
 }
 
-.console-block-additional-data th, .console-block-additional-data td {
+.console-component-additional-data th, .console-component-additional-data td {
 	padding: 2px 5px;
 	border: 1px solid rgba( 150, 150, 150, 0.5 );
 }
 
-.console-block-additional-data th {
+.console-component-additional-data th {
 	font-weight: 400;
 	text-align: right;
 	width: 25%;
 }
 
-.console-block-additional-data td {
+.console-component-additional-data td {
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
@@ -166,38 +166,38 @@ body {
 	Content styles
 */
 
-.block {
+.component {
 	padding: 10px;
 	margin-top: 15px;
 	margin-bottom: 15px;
 }
 
-.block:hover {
+.component:hover {
 	outline: dashed 1px var(--ck-color-focus-border);
 }
 
-.block-headline {
+.component-headline {
 	border-bottom: solid 8px rgb( 10, 85, 130 );
 }
 
-.block-image img {
+.component-image img {
 	width: 100%;
 	height: auto;
 }
 
-.block-image, .block-video {
+.component-image, .component-video {
 	background: rgba( 200, 200, 200, 0.2 );
 	margin-left: 0;
 	margin-right: 0;
 }
 
-.block-align-right {
+.component-align-right {
 	float: right;
 	width: 50%;
 	margin-left: 20px;
 }
 
-.block-align-left {
+.component-align-left {
 	float: left;
 	width: 50%;
 	margin-right: 20px;

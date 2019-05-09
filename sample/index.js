@@ -37,7 +37,7 @@ function d( htmlString ) {
 	const doc = parser.parseFromString( htmlString, 'text/html' );
 
 	if ( doc.body.children.length != 1 ) {
-		throw Error( 'Block\'s render() callback must return exactly one element' );
+		throw Error( 'Component\'s render() callback must return exactly one element' );
 	}
 
 	return doc.body.firstElementChild;
@@ -47,19 +47,19 @@ function uid() {
 	return Math.floor( Math.random() * 9e4 );
 }
 
-class ComponentRepository {
-	constructor( blocks ) {
-		this._blocks = new Map();
+class ComponentDefinitions {
+	constructor( components ) {
+		this._components = new Map();
 
-		for ( const blockName of Object.keys( blocks ) ) {
-			this._blocks.set( blockName, blocks[ blockName ] );
+		for ( const componentName of Object.keys( components ) ) {
+			this._components.set( componentName, components[ componentName ] );
 		}
 	}
 
-	render( name, props ) {
-		const blockDefinition = this._get( name );
+	render( name, properties ) {
+		const componentDefinition = this._get( name );
 
-		return blockDefinition.render( props );
+		return componentDefinition.render( properties );
 	}
 
 	getDefinition( data ) {
@@ -69,93 +69,92 @@ class ComponentRepository {
 			name: data.name,
 			type: definition.type,
 			uid: data.uid || uid(),
-			slot: data.slot || definition.slot,
-			slots: data.slots || definition.slots || {},
-			props: data.props || {}
+			editables: data.editables || definition.editables || {},
+			properties: data.properties || {}
 		};
 	}
 
 	getNames() {
-		return Array.from( this._blocks.keys() );
+		return Array.from( this._components.keys() );
 	}
 
 	_get( name ) {
-		if ( !this._blocks.has( name ) ) {
-			throw new Error( 'Unknown block name.' );
+		if ( !this._components.has( name ) ) {
+			throw new Error( `Unknown component name: ${ name }.` );
 		}
 
-		return this._blocks.get( name );
+		return this._components.get( name );
 	}
 }
 
 const componentCollection = new InstanceCollection( [
 	{
-		name: 'headline',
+		name: 'Headline',
 		uid: uid(),
-		slots: {
-			main: '<h2>Blocks demo</h2><h3>Reinventing structured content editing</h3>'
+		editables: {
+			main: '<h2>Structured editing demo</h2><h3>Reinventing structured content editing</h3>'
 		},
-		props: {
+		properties: {
 			level: 1
 		}
 	},
 
 	{
-		name: 'default',
+		name: 'Text',
 		uid: uid(),
-		slots: {
+		editables: {
 			main: `<h3>I'm totally editable</h3><p>${ sampleText.repeat( 2 ) }</p>`
 		}
 	},
 
 	{
-		name: 'image',
+		name: 'Image',
 		uid: uid(),
-		slots: {
+		editables: {
 			caption: '<p>A photo of a kitten.</p>'
 		},
-		props: {
+		properties: {
 			url: 'http://placekitten.com/800/300',
 			alt: 'Random kitten'
 		}
 	},
 
 	{
-		name: 'default',
+		name: 'Text',
 		uid: uid(),
-		slots: {
+		editables: {
 			main: '<h3>I\'m totally editable</h3>' + `<p>${ sampleText.repeat( 2 ) }</p>`.repeat( 3 )
 		}
 	},
 
 	{
-		name: 'video',
+		name: 'Video',
 		uid: uid(),
-		slots: {
+		editables: {
 			title: '<h3>Red Hot Chili Peppers - Live at Slane Castle 2003 Full Concert</h3>',
 			caption: '<p>Check out Frusciante\'s solo</p>'
 		},
-		props: {
+		properties: {
 			url: 'https://www.youtube.com/embed/FmrGz8qSyrk'
 		}
 	},
 
 	{
-		name: 'video',
+		name: 'Video',
 		uid: uid(),
-		slots: {
+		editables: {
 			title: '<h3>Loituma - Ieva\'s polka, Ievan Polkka</h3>',
 			caption: '<p>Trololo...</p>'
 		},
-		props: {
+		properties: {
 			url: 'https://www.youtube.com/embed/1ygdAiDxKfI',
 		}
 	},
 
 	{
-		name: 'default',
+		name: 'Text',
 		uid: uid(),
-		slots: {
+		editables: {
 			main: `<p>${ sampleText.repeat( 2 ) }</p>`.repeat( 3 )
 		}
 	},
@@ -202,88 +201,88 @@ ClassicEditor
 				'mergeTableCells'
 			]
 		},
-		block: {
-			repository: new ComponentRepository( {
-				default: {
+		component: {
+			definitions: new ComponentDefinitions( {
+				Text: {
 					type: 'textBlock',
-					slots: {
+					editables: {
 						main: '<p></p>'
 					},
 					render() {
 						return d( `
-							<section class="block block-text block-default">
-								<div data-block-slot="main"></div>
+							<section class="component component-text">
+								<div data-component-editable="main"></div>
 							</section>
 						` );
 					}
 				},
 
-				headline: {
+				Headline: {
 					type: 'textBlock',
-					slots: {
+					editables: {
 						main: '<h2></h2>'
 					},
-					render( props ) {
+					render( properties ) {
 						return d( `
-							<hgroup class="block block-text block-headline block-headline-${ props.level || 1 }">
-								<div data-block-slot="main"></div>
+							<hgroup class="component component-text component-headline component-headline-${ properties.level || 1 }">
+								<div data-component-editable="main"></div>
 							</hgroup>
 						` );
 					}
 				},
 
-				// Will be able to work once we'll support inline slots.
-				quote: {
+				// Will be able to work once we'll support inline editables.
+				Quote: {
 					type: 'textBlock',
-					slots: {
+					editables: {
 						main: ''
 					},
 					render() {
 						return d( `
-							<blockquote class="block block-text block-quote">
-								<p data-block-slot="main"></p>
+							<blockquote class="component component-text component-quote">
+								<p data-component-editable="main"></p>
 							</blockquote>
 						` );
 					}
 				},
 
-				image: {
+				Image: {
 					type: 'objectBlock',
-					slots: {
+					editables: {
 						caption: '<p></p>'
 					},
-					render( props ) {
+					render( properties ) {
 						return d( `
-							<figure class="block block-object block-image block-align-${ props.align || 'none' }">
-								<img src="${ props.url || '' }" alt="${ props.alt || '' }" width="700" height="200">
-								<figcaption data-block-slot="caption"></figcaption>
+							<figure class="component component-object component-image component-align-${ properties.align || 'none' }">
+								<img src="${ properties.url || '' }" alt="${ properties.alt || '' }" width="700" height="200">
+								<figcaption data-component-editable="caption"></figcaption>
 							</figure>
 						` );
 					}
 				},
 
-				video: {
+				Video: {
 					type: 'objectBlock',
-					slots: {
+					editables: {
 						title: '<h3></h3>',
 						caption: '<p></p>'
 					},
-					render( props ) {
+					render( properties ) {
 						return d( `
-							<figure class="block block-object block-video block-align-${ props.align || 'none' }">
-								<div data-block-slot="title"></div>
-								<p>${ props.url || '' }</p>
-								<figcaption data-block-slot="caption"></figcaption>
+							<figure class="component component-object component-video component-align-${ properties.align || 'none' }">
+								<div data-component-editable="title"></div>
+								<p>${ properties.url || '' }</p>
+								<figcaption data-component-editable="caption"></figcaption>
 							</figure>
 						` );
 
 						// return d( `
-						// 	<figure class="block block-object block-video">
-						// 		<div data-block-slot="title"></div>
-						// 		<iframe width="560" height="315" src="${ props.url }" frameborder="0"
+						// 	<figure class="component component-object component-video">
+						// 		<div data-component-editable="title"></div>
+						// 		<iframe width="560" height="315" src="${ properties.url }" frameborder="0"
 						// 			allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
 						// 		</iframe>
-						// 		<figcaption data-block-slot="caption"></figcaption>
+						// 		<figcaption data-component-editable="caption"></figcaption>
 						// 	</figure>
 						// ` );
 					}

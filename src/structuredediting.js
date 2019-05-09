@@ -33,7 +33,7 @@ export default class StructuredEditing extends Plugin {
 	}
 
 	init() {
-		this._repository = this.editor.config.get( 'block.repository' );
+		this._componentDefinitions = this.editor.config.get( 'component.definitions' );
 
 		this._setSchema();
 		this._setConverters();
@@ -53,14 +53,14 @@ export default class StructuredEditing extends Plugin {
 
 		schema.register( 'objectBlock', {
 			isObject: true,
-			allowAttributes: [ 'blockName', 'blockProps', 'blockUid' ],
+			allowAttributes: [ 'blockName', 'blockProperties', 'blockUid' ],
 
 			// TODO see below.
 			allowIn: '$root'
 		} );
 
 		schema.register( 'textBlock', {
-			allowAttributes: [ 'blockName', 'blockProps', 'blockUid' ],
+			allowAttributes: [ 'blockName', 'blockProperties', 'blockUid' ],
 			allowContentOf: '$root',
 
 			// Theoretically, this shouldn't be needed but without this
@@ -70,12 +70,12 @@ export default class StructuredEditing extends Plugin {
 			allowIn: '$root'
 		} );
 
-		schema.register( 'blockSlot', {
+		schema.register( 'blockEditable', {
 			isLimit: true,
 			allowIn: 'objectBlock',
-			allowAttributes: [ 'slotName' ],
+			allowAttributes: [ 'editableName' ],
 
-			// TODO disallow textBlock and objectBlock in blockSlot.
+			// TODO disallow textBlock and objectBlock in blockEditable.
 			allowContentOf: '$root'
 		} );
 
@@ -99,10 +99,10 @@ export default class StructuredEditing extends Plugin {
 			view: createViewObjectBlock
 		} );
 
-		// Handle re-rendering on props change.
+		// Handle re-rendering on properties change.
 		editor.conversion.for( 'editingDowncast' ).add(
 			dispatcher => {
-				dispatcher.on( 'attribute:blockProps:objectBlock', ( evt, data, conversionApi ) => {
+				dispatcher.on( 'attribute:blockProperties:objectBlock', ( evt, data, conversionApi ) => {
 					// Hack. Since elementToElement doesn't consume attributes of this element
 					// and since there's no way to make it do so without rewriting it all to a plain `insert:*` listener,
 					// this is the best way to handle the change of this attribute. Without that this listener
@@ -112,18 +112,18 @@ export default class StructuredEditing extends Plugin {
 					}
 
 					const viewElement = conversionApi.mapper.toViewElement( data.item );
-					const viewSlots = findViewSlots( conversionApi.writer.createRangeIn( viewElement ) );
+					const viewEditableSlots = findViewEditableSlots( conversionApi.writer.createRangeIn( viewElement ) );
 
 					conversionApi.writer.remove( viewElement );
 					conversionApi.mapper.unbindViewElement( viewElement );
 
 					const newViewElement = createViewObjectBlock( data.item, conversionApi.writer );
-					const newViewSlots = findViewSlots( conversionApi.writer.createRangeIn( newViewElement ) );
+					const newViewEditableSlots = findViewEditableSlots( conversionApi.writer.createRangeIn( newViewElement ) );
 
-					for ( const slotName of Object.keys( viewSlots ) ) {
+					for ( const editableName of Object.keys( viewEditableSlots ) ) {
 						conversionApi.writer.move(
-							conversionApi.writer.createRangeIn( viewSlots[ slotName ] ),
-							conversionApi.writer.createPositionAt( newViewSlots[ slotName ], 0 )
+							conversionApi.writer.createRangeIn( viewEditableSlots[ editableName ] ),
+							conversionApi.writer.createPositionAt( newViewEditableSlots[ editableName ], 0 )
 						);
 					}
 
@@ -138,24 +138,24 @@ export default class StructuredEditing extends Plugin {
 		function createViewObjectBlock( modelElement, viewWriter ) {
 			// TODO duplicated in the converted for textBlock.
 			const templateViewElement = cloneViewElement(
-				that._renderBlock( modelElement.getAttribute( 'blockName' ), modelElement.getAttribute( 'blockProps' ) ),
+				that._renderBlock( modelElement.getAttribute( 'blockName' ), modelElement.getAttribute( 'blockProperties' ) ),
 				viewWriter,
 				{ createEditables: true }
 			);
 
 			viewWriter.setCustomProperty( 'objectBlock', true, templateViewElement );
 
-			const viewSlots = findViewSlots( viewWriter.createRangeIn( templateViewElement ) );
-			const modelSlots = findObjectBlockModelSlots( modelElement );
+			const viewEditableSlots = findViewEditableSlots( viewWriter.createRangeIn( templateViewElement ) );
+			const modelEditableSlots = findObjectBlockModelEditableSlots( modelElement );
 
-			if ( Object.keys( viewSlots ).sort().join( ',' ) != Object.keys( modelSlots ).sort().join( ',' ) ) {
-				throw new Error( 'Different set of slots in the template and in the model.' );
+			if ( Object.keys( viewEditableSlots ).sort().join( ',' ) != Object.keys( modelEditableSlots ).sort().join( ',' ) ) {
+				throw new Error( 'Different set of editables in the template and in the model.' );
 			}
 
-			for ( const slotName of Object.keys( viewSlots ) ) {
-				editor.editing.mapper.bindElements( modelSlots[ slotName ], viewSlots[ slotName ] );
+			for ( const editableName of Object.keys( viewEditableSlots ) ) {
+				editor.editing.mapper.bindElements( modelEditableSlots[ editableName ], viewEditableSlots[ editableName ] );
 
-				toWidgetEditable( viewSlots[ slotName ], viewWriter );
+				toWidgetEditable( viewEditableSlots[ editableName ], viewWriter );
 			}
 
 			return toWidget( templateViewElement, viewWriter );
@@ -165,29 +165,29 @@ export default class StructuredEditing extends Plugin {
 			model: 'objectBlock',
 			view: ( modelElement, viewWriter ) => {
 				const blockName = modelElement.getAttribute( 'blockName' );
-				const blockProps = modelElement.getAttribute( 'blockProps' );
+				const blockProperties = modelElement.getAttribute( 'blockProperties' );
 				const blockUid = modelElement.getAttribute( 'blockUid' );
 
 				const wrapperViewElement = viewWriter.createContainerElement( 'ck-objectblock', {
-					'data-block-name': blockName,
-					'data-block-props': JSON.stringify( blockProps ),
-					'data-block-uid': blockUid
+					'data-component-name': blockName,
+					'data-component-properties': JSON.stringify( blockProperties ),
+					'data-component-uid': blockUid
 				} );
 
 				const templateViewElement = cloneViewElement(
-					this._renderBlock( blockName, blockProps ),
+					this._renderBlock( blockName, blockProperties ),
 					viewWriter
 				);
 
-				const viewSlots = findViewSlots( viewWriter.createRangeIn( templateViewElement ) );
-				const modelSlots = findObjectBlockModelSlots( modelElement );
+				const viewEditableSlots = findViewEditableSlots( viewWriter.createRangeIn( templateViewElement ) );
+				const modelEditableSlots = findObjectBlockModelEditableSlots( modelElement );
 
-				if ( Object.keys( viewSlots ).sort().join( ',' ) != Object.keys( modelSlots ).sort().join( ',' ) ) {
-					throw new Error( 'Different set of slots in the template and in the model.' );
+				if ( Object.keys( viewEditableSlots ).sort().join( ',' ) != Object.keys( modelEditableSlots ).sort().join( ',' ) ) {
+					throw new Error( 'Different set of editables in the template and in the model.' );
 				}
 
-				for ( const slotName of Object.keys( viewSlots ) ) {
-					editor.data.mapper.bindElements( modelSlots[ slotName ], viewSlots[ slotName ] );
+				for ( const editableName of Object.keys( viewEditableSlots ) ) {
+					editor.data.mapper.bindElements( modelEditableSlots[ editableName ], viewEditableSlots[ editableName ] );
 				}
 
 				viewWriter.insert( viewWriter.createPositionAt( wrapperViewElement, 0 ), templateViewElement );
@@ -207,7 +207,7 @@ export default class StructuredEditing extends Plugin {
 			dispatcher => {
 				const insertViewElement = insertElement( ( modelElement, viewWriter ) => {
 					const templateViewElement = cloneViewElement(
-						this._renderBlock( modelElement.getAttribute( 'blockName' ), modelElement.getAttribute( 'blockProps' ) ),
+						this._renderBlock( modelElement.getAttribute( 'blockName' ), modelElement.getAttribute( 'blockProperties' ) ),
 						viewWriter
 					);
 
@@ -221,13 +221,13 @@ export default class StructuredEditing extends Plugin {
 
 					// Use the existing "old" mapping created by `insertViewElement()`.
 					const templateViewElement = conversionApi.mapper.toViewElement( data.item );
-					const viewSlot = findViewSlots( conversionApi.writer.createRangeIn( templateViewElement ) ).main;
+					const viewEditableSlot = findViewEditableSlots( conversionApi.writer.createRangeIn( templateViewElement ) ).main;
 
-					if ( !viewSlot ) {
-						throw new Error( 'Text block\'s template does not contain the main slot.' );
+					if ( !viewEditableSlot ) {
+						throw new Error( 'Text block\'s template does not contain the main editable.' );
 					}
 
-					conversionApi.mapper.bindElements( data.item, viewSlot );
+					conversionApi.mapper.bindElements( data.item, viewEditableSlot );
 				} );
 			}
 		);
@@ -236,17 +236,17 @@ export default class StructuredEditing extends Plugin {
 			dispatcher => {
 				const insertViewElement = insertElement( ( modelElement, viewWriter ) => {
 					const blockName = modelElement.getAttribute( 'blockName' );
-					const blockProps = modelElement.getAttribute( 'blockProps' );
+					const blockProperties = modelElement.getAttribute( 'blockProperties' );
 					const blockUid = modelElement.getAttribute( 'blockUid' );
 
 					const wrapperViewElement = viewWriter.createContainerElement( 'ck-textblock', {
-						'data-block-name': blockName,
-						'data-block-props': JSON.stringify( blockProps ),
-						'data-block-uid': blockUid
+						'data-component-name': blockName,
+						'data-component-properties': JSON.stringify( blockProperties ),
+						'data-component-uid': blockUid
 					} );
 
 					const templateViewElement = cloneViewElement(
-						this._renderBlock( blockName, blockProps ),
+						this._renderBlock( blockName, blockProperties ),
 						viewWriter
 					);
 
@@ -260,13 +260,13 @@ export default class StructuredEditing extends Plugin {
 
 					// Use the existing "old" mapping created by `insertViewElement()`.
 					const wrapperViewElement = conversionApi.mapper.toViewElement( data.item );
-					const viewSlot = findViewSlots( conversionApi.writer.createRangeIn( wrapperViewElement ) ).main;
+					const viewEditableSlot = findViewEditableSlots( conversionApi.writer.createRangeIn( wrapperViewElement ) ).main;
 
-					if ( !viewSlot ) {
-						throw new Error( 'Text block\'s template does not contain the main slot.' );
+					if ( !viewEditableSlot ) {
+						throw new Error( 'Text block\'s template does not contain the main editable.' );
 					}
 
-					conversionApi.mapper.bindElements( data.item, viewSlot );
+					conversionApi.mapper.bindElements( data.item, viewEditableSlot );
 				} );
 			}
 		);
@@ -300,7 +300,8 @@ export default class StructuredEditing extends Plugin {
 			// TODO Merges subsequent blocks of the base text type.
 			for ( const node of doc.getRoot().getChildren() ) {
 				if ( !node.is( 'objectBlock' ) && !node.is( 'textBlock' ) ) {
-					const textBlock = textBlockToModelElement( this._repository.getDefinition( { name: 'default' } ), writer, editor.data );
+					const textBlock = textBlockToModelElement(
+						this._componentDefinitions.getDefinition( { name: 'Text' } ), writer, editor.data );
 
 					writer.remove( writer.createRangeIn( textBlock ) );
 
@@ -382,7 +383,7 @@ export default class StructuredEditing extends Plugin {
 
 	_setDataPipeline() {
 		const editor = this.editor;
-		const repository = this._repository;
+		const repository = this._componentDefinitions;
 
 		editor.data.init = function( allRootsData ) {
 			if ( typeof allRootsData != 'object' || !Array.isArray( allRootsData.main ) ) {
@@ -408,13 +409,13 @@ export default class StructuredEditing extends Plugin {
 
 	_createButtons() {
 		const editor = this.editor;
-		const repository = this._repository;
+		const repository = this._componentDefinitions;
 
 		for ( const blockName of repository.getNames() ) {
 			editor.ui.componentFactory.add( 'insert' + blockName, () => {
 				const button = new ButtonView( editor.locale );
 
-				button.withText = blockName == 'default' || blockName == 'headline';
+				button.withText = blockName == 'Text' || blockName == 'Headline';
 				button.label = blockName;
 				button.icon = { image: imageIcon, video: mediaIcon }[ blockName ];
 
@@ -432,8 +433,8 @@ export default class StructuredEditing extends Plugin {
 		}
 	}
 
-	_renderBlock( blockName, blockProps ) {
-		return new DomConverter().domToView( this._repository.render( blockName, blockProps ) );
+	_renderBlock( blockName, blockProperties ) {
+		return new DomConverter().domToView( this._componentDefinitions.render( blockName, blockProperties ) );
 	}
 }
 
@@ -452,53 +453,53 @@ function blockToModelElement( blockData, writer, dataController ) {
 function objectBlockToModelElement( blockData, writer, dataController ) {
 	const block = writer.createElement( 'objectBlock', {
 		blockName: blockData.name,
-		blockProps: Object.assign( {}, blockData.props ),
+		blockProperties: Object.assign( {}, blockData.properties ),
 		blockUid: blockData.uid
 	} );
 
-	for ( const slotName of Object.keys( blockData.slots ) ) {
-		const slotDocFrag = dataController.parse( blockData.slots[ slotName ], 'blockSlot' );
+	for ( const editableName of Object.keys( blockData.editables ) ) {
+		const editableDocFrag = dataController.parse( blockData.editables[ editableName ], 'blockEditable' );
 
-		// Ideally, every slot should have different element name so we can configure schema differently for them.
-		const slotContainer = writer.createElement( 'blockSlot', { slotName } );
+		// Ideally, every editable should have different element name so we can configure schema differently for them.
+		const editableContainer = writer.createElement( 'blockEditable', { editableName } );
 
-		writer.append( slotDocFrag, slotContainer );
-		writer.append( slotContainer, block );
+		writer.append( editableDocFrag, editableContainer );
+		writer.append( editableContainer, block );
 	}
 
 	return block;
 }
 
 function textBlockToModelElement( blockData, writer, dataController ) {
-	const slotDocFrag = dataController.parse( blockData.slots.main, 'textBlock' );
+	const editableDocFrag = dataController.parse( blockData.editables.main, 'textBlock' );
 
 	const block = writer.createElement( 'textBlock', {
 		blockName: blockData.name,
-		blockProps: Object.assign( {}, blockData.props ),
+		blockProperties: Object.assign( {}, blockData.properties ),
 		blockUid: blockData.uid
 	} );
 
-	writer.append( slotDocFrag, block );
+	writer.append( editableDocFrag, block );
 
 	return block;
 }
 
 function modelElementToBlock( block, dataController ) {
-	const slots = {};
+	const editables = {};
 
 	if ( block.is( 'textBlock' ) ) {
-		slots.main = dataController.stringify( block );
+		editables.main = dataController.stringify( block );
 	} else {
-		for ( const slot of block.getChildren() ) {
-			slots[ slot.getAttribute( 'slotName' ) ] = dataController.stringify( slot );
+		for ( const editable of block.getChildren() ) {
+			editables[ editable.getAttribute( 'editableName' ) ] = dataController.stringify( editable );
 		}
 	}
 
 	return {
 		name: block.getAttribute( 'blockName' ),
-		props: block.getAttribute( 'blockProps' ),
+		properties: block.getAttribute( 'blockProperties' ),
 		uid: block.getAttribute( 'blockUid' ),
-		slots
+		editables
 	};
 }
 
@@ -511,7 +512,7 @@ function modelElementToBlock( block, dataController ) {
 function cloneViewElement( element, writer, opts = {} ) {
 	let clone;
 
-	if ( opts.createEditables && element.getAttribute( 'data-block-slot' ) ) {
+	if ( opts.createEditables && element.getAttribute( 'data-component-editable' ) ) {
 		clone = writer.createEditableElement( element.name, element.getAttributes() );
 	} else {
 		clone = writer.createContainerElement( element.name, element.getAttributes() );
@@ -535,39 +536,39 @@ function cloneViewNode( node, writer, opts ) {
 /**
  * @param {module:engine/view/range~Range}
  */
-function findViewSlots( range ) {
-	const slots = {};
+function findViewEditableSlots( range ) {
+	const editables = {};
 
 	for ( const value of range ) {
-		if ( value.type == 'elementStart' && value.item.getAttribute( 'data-block-slot' ) ) {
-			slots[ value.item.getAttribute( 'data-block-slot' ) ] = value.item;
+		if ( value.type == 'elementStart' && value.item.getAttribute( 'data-component-editable' ) ) {
+			editables[ value.item.getAttribute( 'data-component-editable' ) ] = value.item;
 		}
 	}
 
-	return slots;
+	return editables;
 }
 
 /**
  * @param {module:engine/model/element~Element} parent
  */
-function findObjectBlockModelSlots( parent ) {
-	const slots = {};
+function findObjectBlockModelEditableSlots( parent ) {
+	const editables = {};
 
 	for ( const child of parent.getChildren() ) {
-		if ( child.getAttribute( 'slotName' ) ) {
-			slots[ child.getAttribute( 'slotName' ) ] = child;
+		if ( child.getAttribute( 'editableName' ) ) {
+			editables[ child.getAttribute( 'editableName' ) ] = child;
 		} else {
-			throw new Error( 'objectBlock must contain only slots.' );
+			throw new Error( 'objectBlock must contain only editables.' );
 		}
 	}
 
-	return slots;
+	return editables;
 }
 
 // Copy paste from upcasthelpers, but with two changes:
 //
 // * it doesn't convert the view element children,
-// * instead, it converts only the content of slots.
+// * instead, it converts only the content of editables.
 //
 // TODO this shouldn't be that hard: https://github.com/ckeditor/ckeditor5-engine/issues/1728
 function prepareObjectBlockUpcastConverter( model, view ) {
@@ -578,20 +579,23 @@ function prepareObjectBlockUpcastConverter( model, view ) {
 		}
 
 		const modelElement = conversionApi.writer.createElement( 'objectBlock', {
-			blockName: data.viewItem.getAttribute( 'data-block-name' ),
-			blockProps: JSON.parse( data.viewItem.getAttribute( 'data-block-props' ) ),
-			blockUid: data.viewItem.getAttribute( 'data-block-uid' )
+			blockName: data.viewItem.getAttribute( 'data-component-name' ),
+			blockProperties: JSON.parse( data.viewItem.getAttribute( 'data-component-properties' ) ),
+			blockUid: data.viewItem.getAttribute( 'data-component-uid' )
 		} );
 
-		const viewSlots = findViewSlots( view.createRangeIn( data.viewItem.getChild( 0 ) ) );
+		const viewEditableSlots = findViewEditableSlots( view.createRangeIn( data.viewItem.getChild( 0 ) ) );
 
-		for ( const slotName of Object.keys( viewSlots ) ) {
-			// Ideally, every slot should have different element name so we can configure schema differently for them.
-			const slotContainer = conversionApi.writer.createElement( 'blockSlot', { slotName } );
+		for ( const editableName of Object.keys( viewEditableSlots ) ) {
+			// Ideally, every editable should have different element name so we can configure schema differently for them.
+			const editableContainer = conversionApi.writer.createElement( 'blockEditable', { editableName } );
 
-			conversionApi.writer.append( slotContainer, modelElement );
+			conversionApi.writer.append( editableContainer, modelElement );
 
-			conversionApi.convertChildren( viewSlots[ slotName ], conversionApi.writer.createPositionAt( slotContainer, 0 ) );
+			conversionApi.convertChildren(
+				viewEditableSlots[ editableName ],
+				conversionApi.writer.createPositionAt( editableContainer, 0 )
+			);
 		}
 
 		// Find allowed parent for element that we are going to insert.
@@ -643,9 +647,9 @@ function prepareTextBlockUpcastConverter( model ) {
 		}
 
 		const modelElement = conversionApi.writer.createElement( 'textBlock', {
-			blockName: data.viewItem.getAttribute( 'data-block-name' ),
-			blockProps: JSON.parse( data.viewItem.getAttribute( 'data-block-props' ) ),
-			blockUid: data.viewItem.getAttribute( 'data-block-uid' )
+			blockName: data.viewItem.getAttribute( 'data-component-name' ),
+			blockProperties: JSON.parse( data.viewItem.getAttribute( 'data-component-properties' ) ),
+			blockUid: data.viewItem.getAttribute( 'data-component-uid' )
 		} );
 
 		// Find allowed parent for element that we are going to insert.
