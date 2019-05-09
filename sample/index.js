@@ -25,7 +25,7 @@ import InstanceCollection from '../src/instancecollection';
 import InstanceInspector from '../src/instanceinspector';
 import MagicBlock from '../src/magicblock';
 
-import CKEditorInspector from '@ckeditor/ckeditor5-inspector';
+// import CKEditorInspector from '@ckeditor/ckeditor5-inspector';
 
 const sampleText =
 	'The framework was designed to be a highly flexible and universal ' +
@@ -254,7 +254,7 @@ ClassicEditor
 					render( properties ) {
 						return d( `
 							<figure class="component component-object component-image component-align-${ properties.align || 'none' }">
-								<img src="${ properties.url || '' }" alt="${ properties.alt || '' }" width="700" height="200">
+								<img src="${ properties.url || '' }" alt="${ properties.alt || '' }">
 								<figcaption data-component-editable="caption"></figcaption>
 							</figure>
 						` );
@@ -268,23 +268,25 @@ ClassicEditor
 						caption: '<p></p>'
 					},
 					render( properties ) {
-						return d( `
-							<figure class="component component-object component-video component-align-${ properties.align || 'none' }">
-								<div data-component-editable="title"></div>
-								<p>${ properties.url || '' }</p>
-								<figcaption data-component-editable="caption"></figcaption>
-							</figure>
-						` );
-
 						// return d( `
-						// 	<figure class="component component-object component-video">
+						// 	<figure class="component component-object component-video component-align-${ properties.align || 'none' }">
 						// 		<div data-component-editable="title"></div>
-						// 		<iframe width="560" height="315" src="${ properties.url }" frameborder="0"
-						// 			allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
-						// 		</iframe>
+						// 		<p>${ properties.url || '' }</p>
 						// 		<figcaption data-component-editable="caption"></figcaption>
 						// 	</figure>
 						// ` );
+
+						return d( `
+							<figure class="component component-object component-video">
+								<div data-component-editable="title"></div>
+								<div class="embed-container">
+									<iframe src="${ properties.url }" frameborder="0"
+										allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
+									</iframe>
+								</div>
+								<figcaption data-component-editable="caption"></figcaption>
+							</figure>
+						` );
 					}
 				}
 			} )
@@ -303,7 +305,7 @@ ClassicEditor
 
 		inspector.renderTo( document.getElementById( 'inspector-container' ) );
 
-		CKEditorInspector.attach( 'editor', editor );
+		// CKEditorInspector.attach( 'editor', editor );
 	} )
 	.catch( err => {
 		console.error( err.stack );

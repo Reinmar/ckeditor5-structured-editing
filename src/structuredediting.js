@@ -417,7 +417,7 @@ export default class StructuredEditing extends Plugin {
 
 				button.withText = blockName == 'Text' || blockName == 'Headline';
 				button.label = blockName;
-				button.icon = { image: imageIcon, video: mediaIcon }[ blockName ];
+				button.icon = { Image: imageIcon, Video: mediaIcon }[ blockName ];
 
 				button.on( 'execute', () => {
 					editor.model.change( writer => {
