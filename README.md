@@ -1,7 +1,14 @@
 CKEditor 5 structured editing
 ========================================
 
-TODO
+## Installation
+
+1. Clone this repository.
+2. `cd ckeditor5-structured-editing`
+3. `yarn install` or `npm install`
+4. `yarn run dev` or `npm run dev` to launch Webpack
+
+Now, you can open `sample/index.html` in your browser.
 
 ## License
 
