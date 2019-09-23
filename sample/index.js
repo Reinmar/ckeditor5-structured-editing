@@ -25,7 +25,7 @@ import InstanceCollection from '../src/instancecollection';
 import InstanceInspector from '../src/instanceinspector';
 import MagicBlock from '../src/magicblock';
 
-// import CKEditorInspector from '@ckeditor/ckeditor5-inspector';
+import CKEditorInspector from '@ckeditor/ckeditor5-inspector';
 
 const sampleText =
 	'The framework was designed to be a highly flexible and universal ' +
@@ -305,7 +305,9 @@ ClassicEditor
 
 		inspector.renderTo( document.getElementById( 'inspector-container' ) );
 
-		// CKEditorInspector.attach( 'editor', editor );
+		CKEditorInspector.attach( editor, {
+			isCollapsed: true
+		} );
 	} )
 	.catch( err => {
 		console.error( err.stack );
