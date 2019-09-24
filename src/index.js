@@ -5,8 +5,9 @@
 
 /* globals console, window, document, DOMParser */
 
-import ClassicEditor from '@ckeditor/ckeditor5-editor-classic/src/classiceditor';
+import '../public/index.css';
 
+import ClassicEditor from '@ckeditor/ckeditor5-editor-classic/src/classiceditor';
 import Essentials from '@ckeditor/ckeditor5-essentials/src/essentials';
 
 import Autoformat from '@ckeditor/ckeditor5-autoformat/src/autoformat';
@@ -24,8 +25,14 @@ import StructuredEditing from '../src/structuredediting';
 import InstanceCollection from '../src/instancecollection';
 import InstanceInspector from '../src/instanceinspector';
 import MagicBlock from '../src/magicblock';
+import { uid } from '../src/utils';
 
 import CKEditorInspector from '@ckeditor/ckeditor5-inspector';
+
+import { createStore } from 'redux';
+import structuredDocument from '../src/data/reducers';
+
+window.store = createStore( structuredDocument );
 
 const sampleText =
 	'The framework was designed to be a highly flexible and universal ' +
@@ -41,10 +48,6 @@ function d( htmlString ) {
 	}
 
 	return doc.body.firstElementChild;
-}
-
-function uid() {
-	return Math.floor( Math.random() * 9e4 );
 }
 
 class ComponentDefinitions {
