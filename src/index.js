@@ -5,8 +5,6 @@
 
 /* globals console, window, document, DOMParser */
 
-import '../public/index.css';
-
 import ClassicEditor from '@ckeditor/ckeditor5-editor-classic/src/classiceditor';
 import Essentials from '@ckeditor/ckeditor5-essentials/src/essentials';
 
@@ -31,6 +29,8 @@ import CKEditorInspector from '@ckeditor/ckeditor5-inspector';
 
 import { createStore } from 'redux';
 import structuredDocument from '../src/data/reducers';
+
+import '../public/index.css';
 
 window.store = createStore( structuredDocument );
 
